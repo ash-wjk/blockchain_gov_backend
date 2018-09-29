@@ -107,8 +107,8 @@ const ProjectNode = function(port){
         connection.on('close', () => closeConnection(connection));
     }
 
-    const createBlock = (teammember) => {
-        let newBlock = chain.createBlock(teammember)
+    const createBlock = (data) => {
+        let newBlock = chain.createBlock(data)
         chain.addToChain(newBlock);
 
 		broadcastMessage(BLOCK, newBlock);
