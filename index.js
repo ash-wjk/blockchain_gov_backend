@@ -27,6 +27,12 @@ let ProjectHTTP = function (){
 
 	app.use(bodyParser.json());
 
+	app.use(function(req, res, next) {
+		res.header("Access-Control-Allow-Origin", "*");
+		res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+		next();
+	  });
+
 	app.get('/addNode/:port', (req, res)=>{
 		console.log('add host: '+req.params.port)
 		node1.addPeer('localhost', req.params.port)
