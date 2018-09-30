@@ -121,6 +121,10 @@ const ProjectNode = function(port){
         }
     }
 
+    const getChain = () => {
+        return chain.getChain();
+    }
+
     const addPeer = (host, port) => {
         let connection = new WebSocket(`ws://${host}:${port}`);
 
@@ -138,7 +142,8 @@ const ProjectNode = function(port){
         broadcastMessage,
         addPeer,
         createBlock,
-        getStats
+        getStats,
+        getChain
     }
 
 }

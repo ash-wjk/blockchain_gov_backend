@@ -9,7 +9,10 @@ const DATA_TYPES = Object.freeze({
 });
 
 let lastProjectUUID = 0;
-const generateProjectUUID = () => lastProjectUUID + 1;
+const generateProjectUUID = () => {
+	lastProjectUUID ++;
+	return `p${lastProjectUUID}`;
+};
 
 const port = 18070+Math.floor(Math.random()*30);
 console.log('starting node on ', port)
@@ -30,15 +33,11 @@ let ProjectHTTP = function (){
 		res.send();
 	})
 
-	app.get('/spawnProject/:teammember', (req, res)=>{
-		let newBlock = node1.createBlock(req.params.teammember);
-		console.log('block created');
-		res.send();
-	})
-
 	app.post('/addProject',(req,res) => {
 		const projectId = generateProjectUUID();
 
+		console.log('addProject', projectId);
+		
 		const record = {
 			projectId,
 			...req.body
@@ -55,27 +54,104 @@ let ProjectHTTP = function (){
 	})
 
 	app.post('/addExpenditure',(req,res) => {
-		
+		const blockData = {
+			type:DATA_TYPES.EXPENDITURE,
+			record:req.body,
+		}
+
+		node1.createBlock(blockData);
+		console.log(node1.getStats());
+		res.send();
 	})
 
 	app.post('/addMilestone',(req,res) => {
+		const record = {
+			completionDate: new Date(),
+			...req.body
+		};
+
+		const blockData = {
+			type:DATA_TYPES.MILESTONE,
+			record,
+		}
+
+		console.log('addMilestone', record);
+
+		node1.createBlock(blockData);
+		console.log(node1.getStats());
+		res.send();
 		
 	})
 
 	app.get('/projects',(req,res) => {
+
+		const chain = node1.getChain();
+		const projects = [];
+
+		chain.forEach(block => {
+			if(block.data.type === DATA_TYPES.PROJECT){
+				const project = {
+					id:block.data.record.projectId,
+					name: block.data.record.projectName,
+				}
+				projects.push(project);
+			}
+		});
+
+		res.json(projects);
 		
 	})
 
 	app.get('/projectData/:projectId',(req,res) => {
-		
-	})
 
-	app.get('/expenditures/:projectId',(req,res) => {
-		
-	})
+		const projectId = req.params.projectId;
+		const chain = node1.getChain();
 
-	app.get('/milestones/:projectId',(req,res) => {
+		let projectRecord;
+		const expenditureRecords = [];
+		const milestoneRecords = [];
+
+		console.log('projectId', projectId);
 		
+
+		for (let index = 0; index < chain.length; index++) {
+			const block = chain[index];
+			
+			if(block.data.type === DATA_TYPES.PROJECT &&  block.data.record.projectId === projectId){
+				projectRecord = block.data.record;		
+			}
+
+			if(block.data.type === DATA_TYPES.EXPENDITURE &&  block.data.record.projectId === projectId){
+				expenditureRecords.push(block.data.record);
+			}
+
+			if(block.data.type === DATA_TYPES.MILESTONE &&  block.data.record.projectId === projectId){
+				milestoneRecords.push(block.data.record);
+				console.log('projectRecord ', projectRecord);	
+			}
+		}
+
+		projectRecord.projectExpenditures = expenditureRecords;
+
+		projectRecord.projectMilestones.forEach(milestone => {
+			 const milestoneRecord = milestoneRecords.find(record => record.id === milestone.id);
+			 if(milestoneRecord){
+				 milestone.completionDate = milestoneRecord.completionDate;
+			 }
+		});
+
+		const project = {
+			id:projectRecord.projectId,
+			name: projectRecord.projectName,
+			description: projectRecord.projectDescription,
+			budget: projectRecord.projectBudget,
+			startDate: projectRecord.projectStartDate,
+			endDate: projectRecord.projectEndDate,
+			milestones: projectRecord.projectMilestones,
+			expenditures: projectRecord.projectExpenditures,
+		}
+
+		res.json(project);
 	})
 
 	app.listen(http_port, () => {
