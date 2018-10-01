@@ -14,13 +14,16 @@ const generateProjectUUID = () => {
 	return `p${lastProjectUUID}`;
 };
 
-const port = 18070+Math.floor(Math.random()*30);
+//p2p test on localhost
+// const port = 18070+Math.floor(Math.random()*30);
+// const http_port = 3000+Math.floor(Math.random()*10);
+
+const port = 18097;
+const http_port = process.env.PORT || 3001;
+
 console.log('starting node on ', port)
 let node1 = new ProjectNode(port);
 node1.init();
-
-//const http_port = 3000+Math.floor(Math.random()*10);
-const http_port = process.env.PORT || 3001;
 
 let ProjectHTTP = function (){
 	const app = new express();
@@ -33,16 +36,14 @@ let ProjectHTTP = function (){
 		next();
 	  });
 
-	app.get('/addNode/:port', (req, res)=>{
-		console.log('add host: '+req.params.port)
-		node1.addPeer('localhost', req.params.port)
+	app.get('/addNode/:host/:port', (req, res)=>{
+		console.log(`add host: ${req.params.host} port: ${req.params.port}`)
+		node1.addPeer(req.params.host, req.params.port)
 		res.send();
 	})
 
 	app.post('/addProject',(req,res) => {
 		const projectId = generateProjectUUID();
-
-		console.log('addProject', projectId);
 		
 		const record = {
 			projectId,
@@ -55,7 +56,6 @@ let ProjectHTTP = function (){
 		}
 
 		node1.createBlock(blockData);
-		console.log(node1.getStats());
 		res.send();
 	})
 
@@ -66,7 +66,6 @@ let ProjectHTTP = function (){
 		}
 
 		node1.createBlock(blockData);
-		console.log(node1.getStats());
 		res.send();
 	})
 
@@ -80,8 +79,6 @@ let ProjectHTTP = function (){
 			type:DATA_TYPES.MILESTONE,
 			record,
 		}
-
-		console.log('addMilestone', record);
 
 		node1.createBlock(blockData);
 		console.log(node1.getStats());
@@ -116,8 +113,6 @@ let ProjectHTTP = function (){
 		let projectRecord;
 		const expenditureRecords = [];
 		const milestoneRecords = [];
-
-		console.log('projectId', projectId);
 		
 
 		for (let index = 0; index < chain.length; index++) {
@@ -133,7 +128,6 @@ let ProjectHTTP = function (){
 
 			if(block.data.type === DATA_TYPES.MILESTONE &&  block.data.record.projectId === projectId){
 				milestoneRecords.push(block.data.record);
-				console.log('projectRecord ', projectRecord);	
 			}
 		}
 
