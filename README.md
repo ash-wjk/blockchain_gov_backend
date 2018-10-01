@@ -5,7 +5,7 @@ spending in local governments using blockchain technology"
 
 ## The stack :
  * blockchain_gov - React.js Font end web application.
- * blockchain_gov_backend - Node.js backend application.
+ * <b>blockchain_gov_backend - Node.js backendapplication. </b> 
  * blockchain_gov_sc - Truffle project for smart contract development.
 
 
