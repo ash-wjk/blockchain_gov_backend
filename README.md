@@ -13,7 +13,8 @@ spending in local governments using blockchain technology"
 
 How to Runs the app in the development mode.
 
-In the project directory, plesae run:
+In the project directory, please run:
 
 ### `npm install`
 ### `node index.js`
+
